@@ -11,11 +11,14 @@ namespace Acme\Console\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Question\Question;
 
 class GreetCommand extends Command {
 
@@ -52,15 +55,30 @@ class GreetCommand extends Command {
     $progress = new ProgressBar($output, $iterations);
     $table = new Table($output);
 
+    /** @var QuestionHelper $questionHelper */
+    $questionHelper = $this->getHelper('question');
+
     if ($names) {
-      $text = 'Hello ' . implode(', ', $names);
+      $names = implode(', ', $names);
     }
     else {
-      $text = 'Hello';
+      $question = new Question('Please provide at least one name (multiple names separated by spaces):', 'world');
+      $names = $questionHelper->ask($input, $output, $question);
     }
+
+    $text = 'Hello ' . $names;
 
     if ($input->getOption('yell')) {
       $text = strtoupper($text);
+    }
+
+    $question = new ConfirmationQuestion(
+      sprintf('Are you sure you want to print that out %d times? [y/n] ', $iterations),
+      false
+    );
+
+    if (!$questionHelper->ask($input, $output, $question)) {
+      return;
     }
 
     $table->setHeaders(['#', 'Message']);
