@@ -10,6 +10,7 @@ namespace Acme\Console\Command;
 
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -44,6 +45,7 @@ class GreetCommand extends Command {
   }
 
   protected function execute(InputInterface $input, OutputInterface $output) {
+    $table = new Table($output);
     $names = $input->getArgument('names');
 
     if ($names) {
@@ -57,8 +59,11 @@ class GreetCommand extends Command {
       $text = strtoupper($text);
     }
 
+    $table->setHeaders(['#', 'Message']);
     for ($i = 0; $i < $input->getOption('iterations'); $i++) {
-      $output->writeln($text);
+      $table->addRow([$i, $text]);
     }
+
+    $table->render();
   }
 }
