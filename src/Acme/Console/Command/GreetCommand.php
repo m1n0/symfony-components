@@ -10,6 +10,7 @@ namespace Acme\Console\Command;
 
 
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -45,8 +46,11 @@ class GreetCommand extends Command {
   }
 
   protected function execute(InputInterface $input, OutputInterface $output) {
-    $table = new Table($output);
     $names = $input->getArgument('names');
+    $iterations = $input->getOption('iterations');
+
+    $progress = new ProgressBar($output, $iterations);
+    $table = new Table($output);
 
     if ($names) {
       $text = 'Hello ' . implode(', ', $names);
@@ -60,10 +64,17 @@ class GreetCommand extends Command {
     }
 
     $table->setHeaders(['#', 'Message']);
-    for ($i = 0; $i < $input->getOption('iterations'); $i++) {
-      $table->addRow([$i, $text]);
-    }
 
+    $output->writeln('Preparing output...');
+    $progress->start();
+    for ($i = 0; $i < $iterations; $i++) {
+      $table->addRow([$i, $text]);
+      $progress->advance();
+      sleep(1);
+    }
+    $progress->finish();
+
+    $output->writeln('');
     $table->render();
   }
 }
